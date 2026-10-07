@@ -1,0 +1,304 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "barcode": "8999909096004",
+      "product_name": "Sampoerna Mild 16",
+      "category": {
+        "id": 1,
+        "name": "Rokok"
+      },
+      "price": {
+        "buy": 31000,
+        "sell": 33500,
+        "currency": "IDR"
+      },
+      "stock_qty": 24,
+      "unit": "bungkus",
+      "supplier": "PT HM Sampoerna",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:01:00Z"
+    },
+    {
+      "id": 2,
+      "barcode": "8999909000544",
+      "product_name": "Djarum Super 12",
+      "category": {
+        "id": 1,
+        "name": "Rokok"
+      },
+      "price": {
+        "buy": 22500,
+        "sell": 24500,
+        "currency": "IDR"
+      },
+      "stock_qty": 18,
+      "unit": "bungkus",
+      "supplier": "PT Djarum",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:02:00Z"
+    },
+    {
+      "id": 3,
+      "barcode": "8998989100120",
+      "product_name": "Gudang Garam Filter 12",
+      "category": {
+        "id": 1,
+        "name": "Rokok"
+      },
+      "price": {
+        "buy": 22000,
+        "sell": 24000,
+        "currency": "IDR"
+      },
+      "stock_qty": 2,
+      "unit": "bungkus",
+      "supplier": "PT Gudang Garam",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:03:00Z"
+    },
+    {
+      "id": 4,
+      "barcode": "8886008101053",
+      "product_name": "Aqua 600 ml",
+      "category": {
+        "id": 2,
+        "name": "Minuman"
+      },
+      "price": {
+        "buy": 2800,
+        "sell": 4000,
+        "currency": "IDR"
+      },
+      "stock_qty": 48,
+      "unit": "botol",
+      "supplier": "PT Tirta Investama",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:04:00Z"
+    },
+    {
+      "id": 5,
+      "barcode": "8996001600269",
+      "product_name": "Le Minerale 600 ml",
+      "category": {
+        "id": 2,
+        "name": "Minuman"
+      },
+      "price": {
+        "buy": 2600,
+        "sell": 3500,
+        "currency": "IDR"
+      },
+      "stock_qty": 36,
+      "unit": "botol",
+      "supplier": "PT Tirta Fresindo Jaya",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:05:00Z"
+    },
+    {
+      "id": 6,
+      "barcode": "8996001600672",
+      "product_name": "Teh Pucuk Harum 350 ml",
+      "category": {
+        "id": 2,
+        "name": "Minuman"
+      },
+      "price": {
+        "buy": 2800,
+        "sell": 4000,
+        "currency": "IDR"
+      },
+      "stock_qty": 3,
+      "unit": "botol",
+      "supplier": "PT Mayora Indah",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:06:00Z"
+    },
+    {
+      "id": 7,
+      "barcode": "8992761002015",
+      "product_name": "Kopi Kapal Api Special Mix",
+      "category": {
+        "id": 2,
+        "name": "Minuman"
+      },
+      "price": {
+        "buy": 1300,
+        "sell": 2000,
+        "currency": "IDR"
+      },
+      "stock_qty": 60,
+      "unit": "sachet",
+      "supplier": "PT Santos Jaya Abadi",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:07:00Z"
+    },
+    {
+      "id": 8,
+      "barcode": "089686010947",
+      "product_name": "Indomie Goreng",
+      "category": {
+        "id": 3,
+        "name": "Mie Instan"
+      },
+      "price": {
+        "buy": 2900,
+        "sell": 3500,
+        "currency": "IDR"
+      },
+      "stock_qty": 80,
+      "unit": "bungkus",
+      "supplier": "PT Indofood",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:08:00Z"
+    },
+    {
+      "id": 9,
+      "barcode": "089686010527",
+      "product_name": "Indomie Soto",
+      "category": {
+        "id": 3,
+        "name": "Mie Instan"
+      },
+      "price": {
+        "buy": 2800,
+        "sell": 3500,
+        "currency": "IDR"
+      },
+      "stock_qty": 40,
+      "unit": "bungkus",
+      "supplier": "PT Indofood",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:09:00Z"
+    },
+    {
+      "id": 10,
+      "barcode": "8998866200301",
+      "product_name": "Mie Sedaap Goreng",
+      "category": {
+        "id": 3,
+        "name": "Mie Instan"
+      },
+      "price": {
+        "buy": 2800,
+        "sell": 3500,
+        "currency": "IDR"
+      },
+      "stock_qty": 1,
+      "unit": "bungkus",
+      "supplier": "PT Wings Food",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:10:00Z"
+    },
+    {
+      "id": 11,
+      "barcode": "8992696404441",
+      "product_name": "Beras Rojolele 5 kg",
+      "category": {
+        "id": 4,
+        "name": "Sembako"
+      },
+      "price": {
+        "buy": 68000,
+        "sell": 75000,
+        "currency": "IDR"
+      },
+      "stock_qty": 6,
+      "unit": "karung",
+      "supplier": "Agen Beras Malang",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:11:00Z"
+    },
+    {
+      "id": 12,
+      "barcode": "8993496108093",
+      "product_name": "Gula Pasir Gulaku 1 kg",
+      "category": {
+        "id": 4,
+        "name": "Sembako"
+      },
+      "price": {
+        "buy": 16500,
+        "sell": 18500,
+        "currency": "IDR"
+      },
+      "stock_qty": 12,
+      "unit": "pak",
+      "supplier": "PT Sweet Indolampung",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:12:00Z"
+    },
+    {
+      "id": 13,
+      "barcode": "8999999195588",
+      "product_name": "Minyak Goreng Bimoli 1 L",
+      "category": {
+        "id": 4,
+        "name": "Sembako"
+      },
+      "price": {
+        "buy": 18500,
+        "sell": 21000,
+        "currency": "IDR"
+      },
+      "stock_qty": 9,
+      "unit": "pouch",
+      "supplier": "PT Salim Ivomas",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:13:00Z"
+    },
+    {
+      "id": 14,
+      "barcode": "8992936211014",
+      "product_name": "Telur Ayam (per butir)",
+      "category": {
+        "id": 4,
+        "name": "Sembako"
+      },
+      "price": {
+        "buy": 1900,
+        "sell": 2500,
+        "currency": "IDR"
+      },
+      "stock_qty": 3,
+      "unit": "butir",
+      "supplier": "Peternak Lokal",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:14:00Z"
+    },
+    {
+      "id": 15,
+      "barcode": "8999999036737",
+      "product_name": "Sabun Lifebuoy 75 g",
+      "category": {
+        "id": 5,
+        "name": "Kebutuhan Rumah"
+      },
+      "price": {
+        "buy": 3500,
+        "sell": 4500,
+        "currency": "IDR"
+      },
+      "stock_qty": 15,
+      "unit": "batang",
+      "supplier": "PT Unilever Indonesia",
+      "is_active": true,
+      "created_at": "2026-09-23T08:00:00Z",
+      "updated_at": "2026-10-07T09:15:00Z"
+    }
+  ]
+}
