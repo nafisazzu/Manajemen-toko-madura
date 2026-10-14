@@ -1,5 +1,6 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
@@ -7,9 +8,31 @@ import { useProducts } from '@/context/ProductContext';
 import { useCart } from '@/context/CartContext';
 
 export default function TabLayout() {
-  const { role } = useAuth();
+  const { user, role, isLoading } = useAuth();
   const { lowStockCount } = useProducts();
   const { totalItems } = useCart();
+
+  // REQUIREMENT 5: Route di (tabs) hanya bisa diakses jika sudah login
+  // 1. Tampilkan loading indikator saat sesi sedang diperiksa dari SecureStore
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: Colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  // 2. Jika tidak ada user/token login, tolak akses dan arahkan ke /login
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   const isPemilik = role === 'pemilik';
 
@@ -28,7 +51,7 @@ export default function TabLayout() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '700',
         },
       }}
@@ -39,12 +62,23 @@ export default function TabLayout() {
         options={{
           title: 'Beranda',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
 
-      {/* 2. Tab Transaksi (POS Kasir) */}
+      {/* 2. Tab Katalog API (Mengakses REST API dengan header Authorization: Bearer <token>) */}
+      <Tabs.Screen
+        name="katalog"
+        options={{
+          title: 'Katalog API',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* 3. Tab Transaksi (POS Kasir) */}
       <Tabs.Screen
         name="pos"
         options={{
@@ -57,12 +91,12 @@ export default function TabLayout() {
             fontSize: 10,
           },
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cart" size={size} color={color} />
+            <Ionicons name="cart-outline" size={size} color={color} />
           ),
         }}
       />
 
-      {/* 3. Tab Produk (Katalog & Stok) */}
+      {/* 4. Tab Produk (Katalog Lokal & Stok) */}
       <Tabs.Screen
         name="products"
         options={{
@@ -75,20 +109,30 @@ export default function TabLayout() {
             fontSize: 10,
           },
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cube" size={size} color={color} />
+            <Ionicons name="cube-outline" size={size} color={color} />
           ),
         }}
       />
 
-      {/* 4. Tab Laporan (Khusus Pemilik - Sembunyikan untuk Kasir) */}
+      {/* 5. Tab Laporan (Khusus Pemilik - Sembunyikan untuk Kasir) */}
       <Tabs.Screen
         name="reports"
         options={{
           title: 'Laporan',
-          // href: null menyembunyikan tombol tab dari bottom bar jika role kasir
           href: isPemilik ? '/(tabs)/reports' : null,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
+            <Ionicons name="bar-chart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* 6. Tab Akun (Profil, Ganti Password, Tambah Kasir, Logout) */}
+      <Tabs.Screen
+        name="akun"
+        options={{
+          title: 'Akun',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-circle-outline" size={size} color={color} />
           ),
         }}
       />

@@ -12,6 +12,7 @@ import {
   ROLE_PEMILIK,
   SessionUser,
 } from "@/services/auth/authService";
+import { onUnauthorized } from "@/services/api/apiClient";
 
 interface AuthContextValue {
   user: SessionUser | null;
@@ -41,12 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Saat aplikasi dibuka, cek apakah masih ada sesi di SecureStore.
+  // Saat aplikasi dibuka, pulihkan sesi dari SecureStore jika masih berlaku.
   useEffect(() => {
     authService
       .restoreSession()
       .then(setUser)
       .finally(() => setIsLoading(false));
+  }, []);
+
+  // Pasang listener 401: jika refresh token gagal, reset user state agar auto redirect ke login
+  useEffect(() => {
+    const unsubscribe = onUnauthorized(() => {
+      setUser(null);
+    });
+    return unsubscribe;
   }, []);
 
   const login = useCallback(

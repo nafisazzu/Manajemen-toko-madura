@@ -2,12 +2,8 @@ import * as Crypto from "expo-crypto";
 import type { UserRole } from "@/types";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { localStore } from "@/services/storage/localStore";
+import { request } from "@/services/api/apiClient";
 
-/**
- * SESUAIKAN dua nilai ini dengan isi `UserRole` di src/types/index.ts.
- * Contoh: jika UserRole = 'owner' | 'cashier', ganti menjadi 'owner' dan 'cashier'.
- * Jika tidak cocok, `npx tsc --noEmit` akan menampilkan error di dua baris ini.
- */
 export const ROLE_PEMILIK: UserRole = "pemilik";
 export const ROLE_KASIR: UserRole = "kasir";
 
@@ -19,27 +15,17 @@ export interface SessionUser {
   role: UserRole;
 }
 
-/** Bentuk akun yang disimpan di AsyncStorage. Password TIDAK disimpan, hanya hash-nya. */
+/** Bentuk akun lokal yang disimpan di AsyncStorage (Password TIDAK disimpan, hanya hash-nya). */
 interface StoredAccount extends SessionUser {
   passwordHash: string;
   salt: string;
   createdAt: string;
 }
 
-/** Disimpan di SecureStore. */
-interface Session {
-  token: string;
-  user: SessionUser;
-  expiresAt: number;
-}
-
 // Kunci AsyncStorage (local storage)
 const KEY_ACCOUNTS = "tm_accounts";
 const KEY_REMEMBERED_USERNAME = "tm_remembered_username";
-// Kunci SecureStore (secure storage). Hanya boleh huruf, angka, ".", "-", "_".
-const KEY_SESSION = "tm_session";
 
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // sesi berlaku 7 hari
 const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 const MIN_PASSWORD = 4;
 
@@ -51,12 +37,40 @@ function createSalt(): string {
   return toHex(Crypto.getRandomBytes(16));
 }
 
-/** Password di-hash SHA-256 bersama salt acak, sehingga password asli tidak pernah disimpan. */
 function hashPassword(password: string, salt: string): Promise<string> {
   return Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     `${salt}:${password}`,
   );
+}
+
+function decodeJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const binary = decodeBase64(base64);
+    return JSON.parse(binary);
+  } catch {
+    return null;
+  }
+}
+
+function decodeBase64(input: string): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  let str = input.replace(/=+$/, "");
+  let output = "";
+  for (
+    let bc = 0, bs = 0, buffer, i = 0;
+    (buffer = str.charAt(i++));
+    ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+      ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+      : 0
+  ) {
+    buffer = chars.indexOf(buffer);
+  }
+  return output;
 }
 
 async function createAccount(
@@ -82,7 +96,6 @@ function toSessionUser(account: StoredAccount): SessionUser {
   return { id, username, name, role };
 }
 
-/** Ambil semua akun. Saat pertama kali dijalankan, buat akun bawaan. */
 async function getAccounts(): Promise<StoredAccount[]> {
   const accounts = await localStore.getJSON<StoredAccount[]>(KEY_ACCOUNTS, []);
   if (accounts.length > 0) return accounts;
@@ -102,50 +115,119 @@ function validatePassword(password: string) {
 }
 
 export const authService = {
+  /**
+   * Login ke REST API backend di API_BASE_URL.
+   * Menerima access token & refresh token JWT dari backend, lalu menyimpannya di SecureStore.
+   */
   async login(username: string, password: string): Promise<SessionUser> {
     const cleanUsername = username.trim().toLowerCase();
     if (!cleanUsername || !password) {
       throw new Error("Isi username dan password.");
     }
 
-    const accounts = await getAccounts();
-    const account = accounts.find((a) => a.username === cleanUsername);
-    const hash = account ? await hashPassword(password, account.salt) : "";
-    if (!account || hash !== account.passwordHash) {
-      throw new Error("Username atau password salah.");
-    }
-
-    const session: Session = {
-      token: Crypto.randomUUID(),
-      user: toSessionUser(account),
-      expiresAt: Date.now() + SESSION_DURATION_MS,
-    };
-    await secureStorage.setItem(KEY_SESSION, JSON.stringify(session));
-    return session.user;
-  },
-
-  /** Dipanggil saat aplikasi dibuka: pulihkan sesi dari SecureStore jika masih berlaku. */
-  async restoreSession(): Promise<SessionUser | null> {
-    const raw = await secureStorage.getItem(KEY_SESSION);
-    if (!raw) return null;
-
+    // Panggil endpoint login backend
+    let responseData: any;
     try {
-      const session = JSON.parse(raw) as Session;
-      const accounts = await getAccounts();
-      const account = accounts.find((a) => a.id === session.user.id);
-      if (!account || !session.token || Date.now() > session.expiresAt) {
-        await secureStorage.removeItem(KEY_SESSION);
-        return null;
+      responseData = await request<any>(
+        "POST",
+        "/login",
+        { username: cleanUsername, password },
+        { skipAuth: true },
+      );
+    } catch (err: any) {
+      // Coba alternatif /auth/login jika endpoint /login 404
+      if (err?.status === 404) {
+        responseData = await request<any>(
+          "POST",
+          "/auth/login",
+          { username: cleanUsername, password },
+          { skipAuth: true },
+        );
+      } else {
+        throw err;
       }
-      return toSessionUser(account);
-    } catch {
-      await secureStorage.removeItem(KEY_SESSION);
-      return null;
     }
+
+    // Ekstraksi token dari response server (fleksibel mendukung berbagai penamaan token)
+    const accessToken: string | undefined =
+      responseData?.accessToken ||
+      responseData?.access_token ||
+      responseData?.token ||
+      responseData?.data?.accessToken ||
+      responseData?.data?.token;
+
+    const refreshToken: string | undefined =
+      responseData?.refreshToken ||
+      responseData?.refresh_token ||
+      responseData?.data?.refreshToken;
+
+    if (!accessToken) {
+      throw new Error("Respon server tidak memuat JWT access token.");
+    }
+
+    // Ekstraksi data profil user
+    let user: SessionUser | null =
+      responseData?.user || responseData?.data?.user || null;
+
+    if (!user) {
+      // Decode user dari payload JWT jika server tidak mengirimkan user terpisah
+      const payload = decodeJwtPayload(accessToken);
+      if (payload) {
+        user = {
+          id: String(payload.sub || payload.id || Crypto.randomUUID()),
+          username: String(payload.username || cleanUsername),
+          name: String(payload.name || cleanUsername),
+          role: payload.role === ROLE_PEMILIK ? ROLE_PEMILIK : ROLE_KASIR,
+        };
+      } else {
+        user = {
+          id: Crypto.randomUUID(),
+          username: cleanUsername,
+          name: cleanUsername === "pemilik" ? "Pemilik Toko" : "Kasir 1",
+          role: cleanUsername === "pemilik" ? ROLE_PEMILIK : ROLE_KASIR,
+        };
+      }
+    }
+
+    // SIMPAN TOKEN DI SECURESTORE (bukan AsyncStorage/localStore)
+    await secureStorage.setTokens(accessToken, refreshToken);
+    await secureStorage.setUser(user);
+
+    return user;
   },
 
+  /**
+   * Pulihkan sesi saat aplikasi dibuka: cek apakah access token masih tersimpan di SecureStore.
+   */
+  async restoreSession(): Promise<SessionUser | null> {
+    const token = await secureStorage.getAccessToken();
+    if (!token) return null;
+
+    const user = await secureStorage.getUser<SessionUser>();
+    if (!user) return null;
+
+    return user;
+  },
+
+  /**
+   * Logout:
+   * 1. Panggil endpoint logout/revoke backend dengan token agar token lama di-revoke.
+   * 2. Hapus token dari SecureStore.
+   */
   async logout(): Promise<void> {
-    await secureStorage.removeItem(KEY_SESSION);
+    const refreshToken = await secureStorage.getRefreshToken();
+    try {
+      await request("POST", "/logout", { refreshToken });
+    } catch {
+      try {
+        await request("POST", "/auth/logout", { refreshToken });
+      } catch {
+        // Abaikan jika backend tidak dapat dihubungi saat logout; pembersihan lokal tetap dilakukan
+      }
+    }
+
+    // Hapus seluruh kredensial dari SecureStore
+    await secureStorage.clearTokens();
   },
 
   async listAccounts(): Promise<SessionUser[]> {
@@ -232,7 +314,7 @@ export const authService = {
     );
   },
 
-  // Preferensi "ingat username" tidak rahasia, jadi cukup di AsyncStorage.
+  // Preferensi "ingat username" tidak rahasia, jadi disimpan di AsyncStorage.
   getRememberedUsername(): Promise<string | null> {
     return localStore.getString(KEY_REMEMBERED_USERNAME);
   },
